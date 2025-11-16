@@ -1,0 +1,15 @@
+{
+  "name": "tw-server",
+  "version": "1.0.0",
+  "description": "tw-server",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "tw-server": "index.js"
+  },
+  "author": "pelosis-big-knockers",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}
