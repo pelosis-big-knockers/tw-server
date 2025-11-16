@@ -124,9 +124,9 @@ const injectScriptToHTML = (html) => {
 }
 
 function compileTweeFiles(callback) {
-  exec(`tweego -f sugarcube-2 -o index.html src`, (error, stdout, stderr) => {
+  exec(`tweego -o index.html src`, (error, stdout, stderr) => {
       compiling = false;
-      if (error) {
+      if (error && !stderr) {
         console.error(error);
       }
 
