@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http';
-import { readFile, watch } from 'fs';
+import { readFile, readdirSync, statSync, watch } from 'fs';
 import { WebSocketServer } from 'ws';
 import { exec } from 'child_process';
+import path from 'path';
+import { writeLine, write, setLoadingLine, setCheckpoint, setCurrentLine, clearToLastCheckpoint } from './console-writer.js';
 
 const host = 'localhost';
 const defaultPort = 8080;
@@ -20,19 +22,8 @@ if (args.length > 0) {
   }
 }
 
-let compiling = true;
-const { promise, resolve } = Promise.withResolvers();
-console.log('Compiling Twee files for the first time...');
-
-compileTweeFiles(() => {
-  console.log('Starting server...');
-  resolve();
-});
-
-await promise;
-
+writeLine('Starting server...\n');
 const httpServer = createServer((req, res) => {
-
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   let path = url.pathname;
@@ -48,8 +39,9 @@ const httpServer = createServer((req, res) => {
       res.statusCode = 200;
       setContentType(res, path);
       if (path.endsWith('.html')) {
-        data = injectScriptToHTML(data.toString());
+        data = injectReloadWsScriptToHTML(data.toString());
       }
+
       res.end(data);
     }
   });
@@ -58,24 +50,28 @@ const httpServer = createServer((req, res) => {
 const wsServer = new WebSocketServer({ server: httpServer });
 
 httpServer.listen(port, host, () => {
-  console.log(`Server running at http://${host}:${port}/`);
+  write(`Server is listening on `);
+  write(`http://${host}:${port}`, 'cyan');
+  writeLine(`\n\nPress Ctrl+C to stop the server.\n`);
+  setCheckpoint();
 });
 
-watch('.', { recursive: true }, (eventType, filename) => {
-  if (eventType === 'change' && isTweeFile(filename)) {
-    if (compiling) {
-      return;
-    }
+let compiling = false;
+const { promise, resolve } = Promise.withResolvers();
 
-    console.log(`Twee file changed: ${filename}. Compiling...`);
-    compiling = true;
+compileTweeFiles(() => {
+  resolve();
+});
+
+await promise;
+
+watch('.', { recursive: true }, (_eventType, filename) => {
+  if (!compiling && isTweeFile(filename)) {
+    clearToLastCheckpoint();
+    writeLine(`Twee file changed: ${filename}. Compiling...`);
     recompileTweeFilesAndReload();
   }
 });
-
-const isTweeFile = (filename) => {
-  return filename.endsWith('.twee') || filename.endsWith('.tw');
-};
 
 const recompileTweeFilesAndReload = () => {
   compileTweeFiles((error) => {
@@ -83,7 +79,7 @@ const recompileTweeFilesAndReload = () => {
       return;
     }
 
-    console.log('Recompilation complete. Notifying clients to reload.');
+    setCurrentLine('Recompilation complete. Notifying clients to reload.');
     wsServer.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send('reload');
@@ -102,7 +98,7 @@ const setContentType = (res, path) => {
   }
 };
 
-const injectScriptToHTML = (html) => {
+const injectReloadWsScriptToHTML = (html) => {
   const script = `<script>
     function createWebSocket() {
       const socket = new WebSocket('ws://' + location.host);
@@ -124,7 +120,13 @@ const injectScriptToHTML = (html) => {
 }
 
 function compileTweeFiles(callback) {
-  exec(`tweego -o index.html src`, (error, stdout, stderr) => {
+  compiling = true;
+  setLoadingLine(() => ({
+    complete: !compiling,
+    message: 'Compiling Twee files...'
+  }));
+
+  exec(`tweego -o index.html ${getTweeFilePaths().join(' ')}`, (error, stdout, stderr) => {
       compiling = false;
       if (error && !stderr) {
         console.error(error);
@@ -143,3 +145,28 @@ function compileTweeFiles(callback) {
       }
     });
 };
+
+function getTweeFilePaths() {
+  const paths = [];
+
+  const walk = (dir) => {
+    const files = readdirSync(dir);
+    files.forEach((file) => {
+      const fullPath = path.join(dir, file);
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        walk(fullPath);
+      } else if (isTweeFile(file)) {
+        paths.push(fullPath);
+      }
+    });
+  };
+
+  walk('.');
+
+  return paths;
+}
+
+function isTweeFile(filename) {
+  return filename.endsWith('.twee') || filename.endsWith('.tw');
+}
