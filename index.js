@@ -59,22 +59,22 @@ httpServer.listen(port, host, () => {
 let compiling = false;
 const { promise, resolve } = Promise.withResolvers();
 
-compileTweeFiles(() => {
+compileFiles(() => {
   resolve();
 });
 
 await promise;
 
 watch('.', { recursive: true }, (_eventType, filename) => {
-  if (!compiling && isTweeFile(filename)) {
+  if (!compiling && isCompilableFile(filename)) {
     clearToLastCheckpoint();
-    writeLine(`Twee file changed: ${filename}. Compiling...`);
-    recompileTweeFilesAndReload();
+    writeLine(`File changed: ${filename}. Compiling...`);
+    recompileFilesAndReload();
   }
 });
 
-const recompileTweeFilesAndReload = () => {
-  compileTweeFiles((error) => {
+const recompileFilesAndReload = () => {
+  compileFiles((error) => {
     if (error || !wsServer.clients.size) {
       return;
     }
@@ -119,14 +119,14 @@ const injectReloadWsScriptToHTML = (html) => {
   return html.replace('</body>', `${script}</body>`);
 }
 
-function compileTweeFiles(callback) {
+function compileFiles(callback) {
   compiling = true;
   setLoadingLine(() => ({
     complete: !compiling,
     message: 'Compiling Twee files...'
   }));
 
-  exec(`tweego -o index.html ${getTweeFilePaths().join(' ')}`, (error, stdout, stderr) => {
+  exec(`tweego -o index.html ${getCompilableFilePaths().join(' ')}`, (error, stdout, stderr) => {
       compiling = false;
       if (error && !stderr) {
         console.error(error);
@@ -146,7 +146,7 @@ function compileTweeFiles(callback) {
     });
 };
 
-function getTweeFilePaths() {
+function getCompilableFilePaths() {
   const paths = [];
 
   const walk = (dir) => {
@@ -156,7 +156,7 @@ function getTweeFilePaths() {
       const stat = statSync(fullPath);
       if (stat.isDirectory()) {
         walk(fullPath);
-      } else if (isTweeFile(file)) {
+      } else if (isCompilableFile(file)) {
         paths.push(fullPath);
       }
     });
@@ -167,6 +167,11 @@ function getTweeFilePaths() {
   return paths;
 }
 
-function isTweeFile(filename) {
-  return filename.endsWith('.twee') || filename.endsWith('.tw');
+function isCompilableFile(filename) {
+  return filename.endsWith('.twee')
+    || filename.endsWith('.tw')
+    || filename.endsWith('.tw2')
+    || filename.endsWith('.twee2')
+    || filename.endsWith('.js')
+    || filename.endsWith('.css');
 }
