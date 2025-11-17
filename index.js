@@ -126,7 +126,7 @@ function compileFiles(callback) {
     message: 'Compiling Twee files...'
   }));
 
-  exec(`tweego -o index.html ${getCompilableFilePaths().join(' ')}`, (error, stdout, stderr) => {
+  exec(`tweego -o index.html ${getCompilableFilePaths('.').join(' ')}`, (error, stdout, stderr) => {
       compiling = false;
       if (error && !stderr) {
         console.error(error);
@@ -146,25 +146,35 @@ function compileFiles(callback) {
     });
 };
 
-function getCompilableFilePaths() {
+function getCompilableFilePaths(dir) {
   const paths = [];
+  const files = readdirSync(dir);
+  let allCompilable = true;
 
-  const walk = (dir) => {
-    const files = readdirSync(dir);
-    files.forEach((file) => {
-      const fullPath = path.join(dir, file);
-      const stat = statSync(fullPath);
-      if (stat.isDirectory()) {
-        walk(fullPath);
-      } else if (isCompilableFile(file)) {
-        paths.push(fullPath);
+  for (const file of files) {
+    if (file === 'node_modules' || file === '.git') {
+      continue;
+    }
+
+    const fullPath = path.join(dir, file);
+    const quotedFullPath = `"${fullPath}"`;
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      const result = getCompilableFilePaths(fullPath);
+      if (result.length > 0 && result[0] !== quotedFullPath) {
+        allCompilable = false;
       }
-    });
-  };
 
-  walk('.');
+      paths.push(...result);
+    } else if (isCompilableFile(file)) {
+      paths.push(quotedFullPath);
+    }
+    else {
+      allCompilable = false;
+    }
+  }
 
-  return paths;
+  return allCompilable ? [`"${dir}"`] : paths;
 }
 
 function isCompilableFile(filename) {
