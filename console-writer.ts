@@ -36,10 +36,6 @@ export function write(message: string, style?: InspectColor | InspectColor[]) {
   if (style) {
     message = styleText(style, message);
   }
-  // const colorCode = color ? colorCodes[color] : undefined;
-  // if (colorCode) {
-  //   message = colorCode + message + colorCodes.reset;
-  // }
 
   process.stdout.write(message);
 }
