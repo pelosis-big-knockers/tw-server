@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFile, readdirSync, statSync, watch } from "fs";
+import { readFile, readdirSync, readFileSync, statSync, watch } from "fs";
 import { WebSocketServer } from "ws";
 import { exec } from "child_process";
 import path from "path";
@@ -66,7 +66,7 @@ await promise;
 setCurrentLine("Watching for file changes...\n");
 
 watch(".", { recursive: true }, (_eventType, filename) => {
-  if (!compiling && filename && isCompilableFile(filename)) {
+  if (!compiling && filename && isCompilableFile(filename, filename)) {
     if (recompileQueue.size == 0) {
       setTimeout(() => {
         recompileQueue.clear();
@@ -84,7 +84,7 @@ watch(".", { recursive: true }, (_eventType, filename) => {
   }
 });
 
-const recompileFilesAndReload = () => {
+function recompileFilesAndReload() {
   compileFiles((error) => {
     if (error || !wsServer.clients.size) {
       setCurrentLine("Recompilation complete.\n");
@@ -98,9 +98,9 @@ const recompileFilesAndReload = () => {
       }
     });
   });
-};
+}
 
-const setContentType = (res: ServerResponse<IncomingMessage>, path: string) => {
+function setContentType(res: ServerResponse<IncomingMessage>, path: string) {
   if (path.endsWith(".html")) {
     res.setHeader("Content-Type", "text/html");
   } else if (path.endsWith(".css")) {
@@ -108,9 +108,9 @@ const setContentType = (res: ServerResponse<IncomingMessage>, path: string) => {
   } else if (path.endsWith(".js")) {
     res.setHeader("Content-Type", "application/javascript");
   }
-};
+}
 
-const injectReloadWsScriptToHTML = (html: string) => {
+function injectReloadWsScriptToHTML(html: string) {
   const script = `<script>
     function createWebSocket() {
       const socket = new WebSocket('ws://' + location.host);
@@ -130,7 +130,7 @@ const injectReloadWsScriptToHTML = (html: string) => {
   </script>`;
 
   return html.replace("</body>", `${script}</body>`);
-};
+}
 
 function compileFiles(callback: (error: boolean) => void) {
   compiling = true;
@@ -181,7 +181,7 @@ function getCompilableFilePaths(dir: string) {
       }
 
       paths.push(...result);
-    } else if (isCompilableFile(file)) {
+    } else if (isCompilableFile(file, fullPath)) {
       paths.push(quotedFullPath);
     } else {
       allCompilable = false;
@@ -192,7 +192,12 @@ function getCompilableFilePaths(dir: string) {
 }
 
 // TODO: Make this configurable? Technically Tweego can embed images and other assets too.
-function isCompilableFile(filename: string) {
+function isCompilableFile(filename: string, fullPath: string) {
+  if (filename.endsWith(".js") && isShebangScript(fullPath)) {
+    // Node CLI scripts (e.g. build/lint tooling) aren't meant to be bundled into the story.
+    return false;
+  }
+
   return (
     filename.endsWith(".twee") ||
     filename.endsWith(".tw") ||
@@ -201,4 +206,9 @@ function isCompilableFile(filename: string) {
     filename.endsWith(".js") ||
     filename.endsWith(".css")
   );
+}
+
+function isShebangScript(fullPath: string) {
+  const fd = readFileSync(fullPath, { encoding: "utf-8", flag: "r" }).slice(0, 2);
+  return fd === "#!";
 }
