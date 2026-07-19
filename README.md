@@ -66,26 +66,29 @@ and `State` as undefined. Scaffold the editor setup with:
 tw-server init
 ```
 
-This writes a `tsconfig.json` and a `sugarcube.d.ts` that load SugarCube's types
-and relax story variables / settings to permissive index signatures. For the
-types to resolve, tw-server must be installed **as a project dependency** (above),
-so its bundled `@types/twine-sugarcube` is available; `init` warns if it can't
-find them.
+This writes a `tsconfig.json` with `"types": ["twine-sugarcube"]`, which loads
+SugarCube's types. For them to resolve, tw-server must be installed **as a project
+dependency** (above), so its bundled `@types/twine-sugarcube` is available; `init`
+warns if it can't find them.
 
-### `setup.*` completion and go-to-definition
+### Completion and go-to-definition for `setup` / variables / settings
 
-`setup.foo = () => …` attaches members by assignment, which TypeScript's type
-system can't see. That intelligence is provided by a companion **VS Code
-extension**, [Twine SugarCube TypeScript Tools](../tw-sugarcube-ts-tools) — it
-contributes a language-service plugin globally, so once installed it gives
-**completion**, **go-to-definition**, and no false "property does not exist"
-errors for your `setup.*` members, with no per-project config and no change to how
+`setup.foo = () => …`, `State.variables.hp = 10`, and `settings.volume = 1` attach
+members by assignment, which TypeScript's type system can't see. That intelligence
+is provided by a companion **VS Code extension**, [Twine SugarCube TypeScript
+Tools](../tw-sugarcube-ts-tools) — it contributes a language-service plugin
+globally, so once installed it gives **completion**, **go-to-definition**, and no
+false "property does not exist" errors for members of `setup`, `State.variables`,
+`State.temporary`, and `settings`, with no per-project config and no change to how
 you write code:
 
 ```ts
 setup.playerName = (): string => State.variables.name; // in one file
 setup.playerName();  // elsewhere: autocompletes, and ctrl+click jumps here
 ```
+
+Because the extension suppresses those errors, no permissive `.d.ts` augmentation
+is needed — the tsconfig above is the whole editor setup.
 
 (A tsconfig `plugins` entry would be the more obvious wiring, but VS Code does not
 reliably load a plugin from a project's local `node_modules` — an extension that

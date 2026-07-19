@@ -333,9 +333,10 @@ function isShebangScript(fullPath: string) {
 
 // `tw-server init`: scaffold the editor-side TypeScript setup into the current
 // project. tw-server type-checks the build with its bundled SugarCube types, but
-// the editor reads the project's own config, so a story needs a tsconfig plus an
-// augmentation that loads SugarCube's types. `setup.*` completion / go-to-def is
-// provided separately by the "Twine SugarCube TypeScript Tools" VS Code extension.
+// the editor reads the project's own config, so a story needs a tsconfig that
+// loads SugarCube's types. Completion / go-to-def / error-free access for the
+// assignment-populated containers (setup, State.variables, settings, ...) come
+// from the "Twine SugarCube TypeScript Tools" VS Code extension.
 function initProject() {
   const tsconfig = `{
   "compilerOptions": {
@@ -343,6 +344,7 @@ function initProject() {
     "lib": ["ES2020", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "types": ["twine-sugarcube"],
     "noEmit": true,
     "skipLibCheck": true
   },
@@ -350,39 +352,18 @@ function initProject() {
 }
 `;
 
-  const augmentation = `// Loads SugarCube's types (State, Story, Config, $, ...) and relaxes story
-// variables and settings to permissive index signatures so ad-hoc properties
-// type-check without being declared first.
-//
-// \`setup.*\` members are handled by the "Twine SugarCube TypeScript Tools" VS Code
-// extension (completion, go-to-definition, and no false "does not exist" errors),
-// so they need no augmentation here.
-import "twine-sugarcube";
-
-declare module "twine-sugarcube" {
-  interface SugarCubeStoryVariables {
-    [key: string]: any;
+  if (existsSync("tsconfig.json")) {
+    write("Skipped ");
+    writeLine("tsconfig.json (already exists)", "yellow");
+  } else {
+    writeFileSync("tsconfig.json", tsconfig);
+    write("Created ");
+    writeLine("tsconfig.json", ["green", "underline"]);
   }
 
-  interface SugarCubeSettingVariables {
-    [key: string]: any;
-  }
-}
-`;
-
-  for (const [name, content] of Object.entries({ "tsconfig.json": tsconfig, "sugarcube.d.ts": augmentation })) {
-    if (existsSync(name)) {
-      write("Skipped ");
-      writeLine(`${name} (already exists)`, "yellow");
-    } else {
-      writeFileSync(name, content);
-      write("Created ");
-      writeLine(name, ["green", "underline"]);
-    }
-  }
-
-  writeLine("\nSugarCube types are set up for the editor. For `setup.*` completion and");
-  writeLine("go-to-definition, install the \"Twine SugarCube TypeScript Tools\" VS Code extension.");
+  writeLine("\nSugarCube types are set up for the editor via tsconfig. For completion,");
+  writeLine("go-to-definition, and error-free setup.* / State.variables.* / settings.* access,");
+  writeLine("install the \"Twine SugarCube TypeScript Tools\" VS Code extension.");
   if (!sugarCubeTypesResolvable()) {
     writeLine(
       "\nNote: @types/twine-sugarcube can't be resolved from this project, so the editor can't load the types yet.\n" +

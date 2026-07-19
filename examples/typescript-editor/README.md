@@ -1,12 +1,13 @@
 # typescript-editor
 
-Demonstrates the editor experience for `setup.*` members, written the plain
-SugarCube way (`setup.foo = () => …`), with no augmentation to maintain.
+Demonstrates the editor experience for SugarCube's assignment-populated members
+(`setup.*`, `State.variables.*`, …), written the plain way, with **no
+`sugarcube.d.ts`** — just a `tsconfig.json`.
 
 `player.ts` and `combat.ts` each define a `setup` member by assignment; `main.ts`
-uses them. The `tsconfig.json` and `sugarcube.d.ts` are what `tw-server init`
-writes: the augmentation loads SugarCube's engine types and relaxes story
-variables / settings; `setup.*` is handled by the extension (below).
+uses them and a `State.variables` member. The `tsconfig.json` is what
+`tw-server init` writes — `"types": ["twine-sugarcube"]` loads SugarCube's types,
+and the extension (below) handles the assignment-populated members.
 
 ## Trying it in your editor
 
