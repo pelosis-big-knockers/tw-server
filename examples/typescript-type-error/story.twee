@@ -11,5 +11,5 @@ TypeScript Type Error
 :: Start
 count is: <<= setup.count>>
 
-types.ts assigns a string to a number-typed variable. This compiles anyway —
-see the README for why.
+types.ts assigns a string to a number-typed variable, so the type-checked build
+fails before this passage is ever compiled — see the README.

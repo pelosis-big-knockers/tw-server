@@ -2,10 +2,14 @@
 
 `types.ts` contains a **type** error (a string assigned to a `number`).
 
-tw-server transpiles per-file with `ts.transpileModule`, which strips types
-without type-checking. Type errors therefore pass through silently: the build
-succeeds and `const count = "not a number"` ends up in the story.
+tw-server compiles TypeScript with the native `tsc`, which runs a full
+type-check — so the type error fails the build:
 
-Only **syntax** errors are caught (see `typescript-syntax-error`). For real
-type-checking, run `tsc --noEmit` or rely on your editor — that is intentionally
-outside tw-server's per-file transpile step.
+```
+types.ts(4,7): error TS2322: Type 'string' is not assignable to type 'number'.
+```
+
+The build aborts before tweego runs: no `index.html` is produced, and a running
+server keeps the previous good build (see `typescript-syntax-error` for the same
+behavior on a syntax error). A plain per-file transpile would have stripped the
+type and let this through silently; type-checked compilation catches it.

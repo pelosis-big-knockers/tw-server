@@ -3,28 +3,27 @@
   "version": "1.0.0",
   "description": "tw-server",
   "type": "module",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "bin": {
-    "tw-server": "index.ts"
+    "tw-server": "dist/index.js"
   },
-  "pkg": {
-    "scripts": [
-      "*.ts"
-    ],
-    "assets": [
-      "tweego/**"
-    ]
-  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepare": "node scripts/build.mjs",
     "examples": "node examples/run.mjs"
   },
   "author": "pelosis-big-knockers",
   "license": "MIT",
   "dependencies": {
-    "typescript": "^5.9.2",
+    "@types/twine-sugarcube": "^2.37.2",
+    "typescript": "^7.0.2",
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "@types/ws": "^8.18.1"
   }
 }

@@ -9,11 +9,11 @@ with a `README.md` explaining what it demonstrates.
 | `twee-only` | Baseline `.twee`; whole directory collapses to one tweego argument |
 | `with-css` | `.css` bundled as the story stylesheet |
 | `with-js` | Plain `.js` bundled as a script, no transpilation |
-| `typescript-basic` | `.ts` transpiled to JS (types stripped) and bundled |
-| `typescript-nested` | `.ts` in a subdirectory; output flattened in the scratch dir |
+| `typescript-basic` | `.ts` type-checked and compiled to JS, then bundled |
+| `typescript-nested` | `.ts` in a subdirectory; output mirrored under the scratch dir |
 | `typescript-syntax-error` | Syntax error fails the build before tweego runs |
-| `typescript-type-error` | Type errors pass through silently (transpile-only) |
-| `excluded-files` | `.d.ts` and shebang tooling scripts are not bundled |
+| `typescript-type-error` | Type error caught by `tsc` — build fails |
+| `excluded-files` | `.d.ts` (types only) and shebang tooling scripts are not bundled |
 
 ## Running
 
