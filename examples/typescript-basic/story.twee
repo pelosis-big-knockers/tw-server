@@ -1,0 +1,15 @@
+:: StoryTitle
+TypeScript Basic
+
+:: StoryData
+{
+  "ifid": "44444444-4444-4444-8444-444444444444",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+Welcome, <<= setup.playerName()>>.
+
+setup.playerName is defined in logic.ts, which tw-server transpiles to
+JavaScript before tweego bundles it.

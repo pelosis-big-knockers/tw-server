@@ -1,0 +1,15 @@
+:: StoryTitle
+TypeScript Type Error
+
+:: StoryData
+{
+  "ifid": "77777777-7777-4777-8777-777777777777",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+count is: <<= setup.count>>
+
+types.ts assigns a string to a number-typed variable. This compiles anyway —
+see the README for why.

@@ -1,0 +1,12 @@
+:: StoryTitle
+With CSS
+
+:: StoryData
+{
+  "ifid": "22222222-2222-4222-8222-222222222222",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+This story's colors come from styles.css, bundled by tweego as a stylesheet.

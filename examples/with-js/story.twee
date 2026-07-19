@@ -1,0 +1,14 @@
+:: StoryTitle
+With JS
+
+:: StoryData
+{
+  "ifid": "33333333-3333-4333-8333-333333333333",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+A six-sided die rolls: <<= setup.roll(6)>>
+
+The setup.roll function comes from logic.js.

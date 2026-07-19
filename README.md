@@ -11,7 +11,9 @@ A Node.js server for managing and serving Twine story formats and related assets
 ## Features
 
 - Runs a server to automatically compile and serve Twine stories.
-- Automatically detects changes in .tw files, recompiles them, and refreshes the served content.
+- Automatically detects changes in source files, recompiles them, and refreshes the served content.
+- Compiles Twee (`.twee`, `.tw`, `.tw2`, `.twee2`), JavaScript (`.js`), and CSS (`.css`) sources with tweego.
+- Compiles TypeScript (`.ts`) sources: each file is transpiled to JavaScript (types stripped, no type-checking or bundling) before being handed to tweego. Declaration files (`.d.ts`) and shebang scripts (Node CLI tooling) are ignored.
 
 ## Getting Started
 
@@ -41,7 +43,7 @@ Then you can run the server from the command prompt anywhere with:
 tw-server
 ```
 
-Any `.tw` files in the current directory will be compiled into a `index.html` file in the same directory, and served on `http://localhost:8080` by default. You can specify a different port by providing it as an argument:
+Any compilable source files in the current directory (Twee, JavaScript, TypeScript, and CSS) will be compiled into an `index.html` file in the same directory, and served on `http://localhost:8080` by default. You can specify a different port by providing it as an argument:
 
 ```bat
 tw-server 8090

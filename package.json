@@ -15,9 +15,13 @@
       "tweego/**"
     ]
   },
+  "scripts": {
+    "examples": "node examples/run.mjs"
+  },
   "author": "pelosis-big-knockers",
   "license": "MIT",
   "dependencies": {
+    "typescript": "^5.9.2",
     "ws": "^8.18.3"
   },
   "devDependencies": {

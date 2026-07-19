@@ -1,1 +1,4 @@
 node_modules
+
+# Build artifacts produced when running the example fixtures
+examples/**/index.html

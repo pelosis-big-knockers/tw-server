@@ -1,0 +1,13 @@
+:: StoryTitle
+TypeScript Syntax Error
+
+:: StoryData
+{
+  "ifid": "66666666-6666-4666-8666-666666666666",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+You should never see this compiled — the build aborts on the syntax error in
+broken.ts before tweego runs.

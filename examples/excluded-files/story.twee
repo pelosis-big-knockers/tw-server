@@ -1,0 +1,15 @@
+:: StoryTitle
+Excluded Files
+
+:: StoryData
+{
+  "ifid": "88888888-8888-4888-8888-888888888888",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+<<= setup.included()>>
+
+Only real.ts is bundled. game.d.ts (a declaration file) and build-tool.ts (a
+shebang tooling script) are both excluded.
