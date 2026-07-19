@@ -333,8 +333,9 @@ function isShebangScript(fullPath: string) {
 
 // `tw-server init`: scaffold the editor-side TypeScript setup into the current
 // project. tw-server type-checks the build with its bundled SugarCube types, but
-// the editor (tsserver) reads the project's own tsconfig, so a story needs these
-// two files for `setup`, `State`, `$`, etc. to resolve while editing.
+// the editor reads the project's own config, so a story needs a tsconfig plus an
+// augmentation that loads SugarCube's types. `setup.*` completion / go-to-def is
+// provided separately by the "Twine SugarCube TypeScript Tools" VS Code extension.
 function initProject() {
   const tsconfig = `{
   "compilerOptions": {
@@ -349,17 +350,16 @@ function initProject() {
 }
 `;
 
-  const augmentation = `// SugarCube's runtime globals for your editor. \`setup\`, story variables, and
-// settings are relaxed to permissive index signatures so ad-hoc properties
-// type-check without being declared first; the rest of the API stays fully typed.
-// Replace these with specific declarations as your story grows.
+  const augmentation = `// Loads SugarCube's types (State, Story, Config, $, ...) and relaxes story
+// variables and settings to permissive index signatures so ad-hoc properties
+// type-check without being declared first.
+//
+// \`setup.*\` members are handled by the "Twine SugarCube TypeScript Tools" VS Code
+// extension (completion, go-to-definition, and no false "does not exist" errors),
+// so they need no augmentation here.
 import "twine-sugarcube";
 
 declare module "twine-sugarcube" {
-  interface SugarCubeSetupObject {
-    [key: string]: any;
-  }
-
   interface SugarCubeStoryVariables {
     [key: string]: any;
   }
@@ -381,7 +381,8 @@ declare module "twine-sugarcube" {
     }
   }
 
-  writeLine("\nEditor TypeScript support is set up. Open a .ts file to check that SugarCube's globals resolve.");
+  writeLine("\nSugarCube types are set up for the editor. For `setup.*` completion and");
+  writeLine("go-to-definition, install the \"Twine SugarCube TypeScript Tools\" VS Code extension.");
   if (!sugarCubeTypesResolvable()) {
     writeLine(
       "\nNote: @types/twine-sugarcube can't be resolved from this project, so the editor can't load the types yet.\n" +

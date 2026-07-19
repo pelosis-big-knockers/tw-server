@@ -1,0 +1,12 @@
+:: StoryTitle
+TypeScript Editor
+
+:: StoryData
+{
+  "ifid": "99999999-9999-4999-8999-999999999999",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+<<= setup.playerName()>> attacks for <<= setup.attack(3)>>.

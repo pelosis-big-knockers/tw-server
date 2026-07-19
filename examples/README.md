@@ -13,6 +13,7 @@ with a `README.md` explaining what it demonstrates.
 | `typescript-nested` | `.ts` in a subdirectory; output mirrored under the scratch dir |
 | `typescript-syntax-error` | Syntax error fails the build before tweego runs |
 | `typescript-type-error` | Type error caught by `tsc` — build fails |
+| `typescript-editor` | Editor completion + go-to-definition for `setup.*` (via the companion VS Code extension) |
 | `excluded-files` | `.d.ts` (types only) and shebang tooling scripts are not bundled |
 
 ## Running
