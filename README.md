@@ -6,6 +6,7 @@ A Node.js server for managing and serving Twine story formats and related assets
 
 - `index.ts` — Main entry point for the server (and the `tw-server init` command).
 - `console-writer.ts` — Utility for console output.
+- `twee-script.ts` — Strips TypeScript out of `<<script>>` payloads in passages.
 - `types/` — Bundled SugarCube type augmentation handed to `tsc` when type-checking a story.
 - `tweego/` — Contains tweego executable and related files for compiling .tw files.
 - `tsconfig.build.json`, `scripts/build.mjs` — Compile the sources to `dist/` for publishing.
@@ -16,6 +17,7 @@ A Node.js server for managing and serving Twine story formats and related assets
 - Automatically detects changes in source files, recompiles them, and refreshes the served content.
 - Compiles Twee (`.twee`, `.tw`, `.tw2`, `.twee2`), JavaScript (`.js`), and CSS (`.css`) sources with tweego.
 - Compiles TypeScript (`.ts`) sources with the native TypeScript compiler (`tsc`): the story's TypeScript is **type-checked** and emitted to JavaScript for tweego to bundle. Type and syntax errors fail the build (nothing is served until they're fixed). Declaration files (`.d.ts`) contribute types only; shebang scripts (Node CLI tooling) are ignored.
+- Compiles TypeScript written **inside `<<script>>` payloads** in passages. SugarCube hands a payload straight to `eval`, so a type annotation in there is a syntax error in the browser; each payload is compiled to JavaScript and tweego is handed a stripped copy of the passage file. `<<script TypeScript>>` is accepted and rewritten to the plain tag SugarCube understands; `<<script TwineScript>>` is left alone (SugarCube desugars that one itself). A payload that isn't valid TypeScript fails the build, reported against its `.twee` line — but payloads are *not* type-checked here, because they're compiled without the story's types; use the companion extension or `tw-sugarcube-lint` for that.
 - Bundles SugarCube's type definitions (`@types/twine-sugarcube`), so a story's TypeScript can use SugarCube's runtime globals (`setup`, `State`, `Story`, `$`, ...) with full type-checking and no per-project install. `setup`, story variables, and settings are relaxed to permissive index signatures so ad-hoc properties type-check without being declared first, while the rest of the SugarCube API stays fully typed. A project's own augmentation (e.g. from `tw-server init`) merges with this without conflict.
 - `tw-server init` scaffolds a `tsconfig.json` and `sugarcube.d.ts` so the **editor** resolves the same SugarCube types the build uses. `setup.*` completion and go-to-definition come from a companion VS Code extension (see [TypeScript editor support](#typescript-editor-support)).
 
@@ -94,9 +96,12 @@ is needed — the tsconfig above is the whole editor setup.
 reliably load a plugin from a project's local `node_modules` — an extension that
 contributes the plugin globally is the mechanism that actually works.)
 
-This covers `.ts`/`.js` files. Intelligence *inside* `.twee` passages (e.g.
-`<<run setup.foo()>>`) is a separate, larger piece of tooling and isn't included
-yet.
+The same extension covers code *inside* `.twee` passages — `<<run setup.foo()>>`,
+`<<set $hp to 10>>`, and `<<script>>` payloads all get hover, completion,
+go-to-definition and diagnostics, and it ships a `tw-sugarcube-lint` CLI that
+runs the same analysis over a whole project for CI. tw-server's part of that is
+the build step above: it makes TypeScript in a `<<script>>` payload actually
+shippable.
 
 ## License
 

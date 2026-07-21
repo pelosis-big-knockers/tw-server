@@ -8,6 +8,7 @@ import { createRequire } from "module";
 import path from "path";
 import os from "os";
 import { writeLine, write, setLoadingLine, setCurrentLine } from "./console-writer.ts";
+import { stripScriptTypes } from "./twee-script.ts";
 
 const host = "localhost";
 const defaultPort = 8080;
@@ -167,30 +168,46 @@ function compileFiles(callback: (error: boolean) => void) {
       return;
     }
 
-    const exePath = path.join(import.meta.dirname, "tweego", "tweego");
-    const sources = getCompilableFilePaths(".").join(" ");
-    exec(`"${exePath}" -o index.html ${sources} "${tempDir}"`, (error, stdout, stderr) => {
-      compiling = false;
-      if (stderr) {
-        writeLine(stderr, "red");
+    // TypeScript in a `<<script>>` payload has to go the same way: tweego would
+    // hand the annotations straight to the browser. The stripped copies land in
+    // the scratch dir, so their originals must be kept off tweego's list —
+    // seeing a passage twice is an error, not a merge.
+    stripScriptTypes(".", tempDir, ({ rewritten, error: scriptError }) => {
+      if (scriptError) {
+        compiling = false;
+        writeLine(scriptError, "red");
+        if (callback) {
+          callback(true);
+        }
+
+        return;
       }
 
-      if (error) {
-        writeLine(error.message, "red");
-      }
+      const exePath = path.join(import.meta.dirname, "tweego", "tweego");
+      const sources = getCompilableFilePaths(".", rewritten).join(" ");
+      exec(`"${exePath}" -o index.html ${sources} "${tempDir}"`, (error, stdout, stderr) => {
+        compiling = false;
+        if (stderr) {
+          writeLine(stderr, "red");
+        }
 
-      if (stdout) {
-        writeLine(stdout);
-      }
+        if (error) {
+          writeLine(error.message, "red");
+        }
 
-      if (callback) {
-        callback(!!(error || stderr));
-      }
+        if (stdout) {
+          writeLine(stdout);
+        }
+
+        if (callback) {
+          callback(!!(error || stderr));
+        }
+      });
     });
   });
 }
 
-function getCompilableFilePaths(dir: string) {
+function getCompilableFilePaths(dir: string, rewritten: Set<string>) {
   const paths: string[] = [];
   const files = readdirSync(dir);
   let allCompilable = true;
@@ -205,12 +222,21 @@ function getCompilableFilePaths(dir: string) {
     const quotedFullPath = `"${fullPath}"`;
     const stat = statSync(fullPath);
     if (stat.isDirectory()) {
-      const result = getCompilableFilePaths(fullPath);
-      if (result.length > 0 && result[0] !== quotedFullPath) {
+      const result = getCompilableFilePaths(fullPath, rewritten);
+      // The directory collapses into this one only if it collapsed to exactly
+      // itself. Testing `result.length > 0` instead let a directory that
+      // collapsed to NOTHING (everything in it excluded) pass as compilable —
+      // and handing tweego the parent directory would then feed it the very
+      // files that were meant to be left out.
+      if (result.length !== 1 || result[0] !== quotedFullPath) {
         allCompilable = false;
       }
 
       paths.push(...result);
+    } else if (rewritten.has(path.resolve(fullPath))) {
+      // Its `<<script>>` payloads were compiled; the stripped copy in the
+      // scratch dir stands in for this file.
+      allCompilable = false;
     } else if (isCompilableFile(file, fullPath)) {
       // tweego ignores .ts files (unknown extension); their transpiled .js
       // outputs are supplied separately from the scratch dir. Everything else

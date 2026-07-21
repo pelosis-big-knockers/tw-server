@@ -11,6 +11,8 @@ with a `README.md` explaining what it demonstrates.
 | `with-js` | Plain `.js` bundled as a script, no transpilation |
 | `typescript-basic` | `.ts` type-checked and compiled to JS, then bundled |
 | `typescript-nested` | `.ts` in a subdirectory; output mirrored under the scratch dir |
+| `typescript-in-passage` | TypeScript inside a `<<script>>` payload, stripped before tweego |
+| `typescript-in-passage-error` | A payload that isn't valid TypeScript fails the build, reported on the `.twee` line |
 | `typescript-syntax-error` | Syntax error fails the build before tweego runs |
 | `typescript-type-error` | Type error caught by `tsc` — build fails |
 | `typescript-editor` | Editor completion + go-to-definition for `setup.*` (via the companion VS Code extension) |
