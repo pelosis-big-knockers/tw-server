@@ -1,0 +1,46 @@
+:: StoryTitle
+TypeScript In Passage
+
+:: StoryData
+{
+  "ifid": "77777777-7777-4777-8777-777777777777",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+<<script>>
+  interface Loot {
+    name: string;
+    value: number;
+  }
+
+  const drops: Loot[] = [
+    { name: "rusty sword", value: 3 },
+    { name: "healing herb", value: 7 },
+  ];
+
+  State.variables.gold = drops.reduce((total: number, item: Loot) => total + item.value, 0);
+  State.variables.best = drops.map((item) => item.name).join(" and ");
+<</script>>
+
+You found $best, worth $gold gold.
+
+[[Haggle]]
+
+:: Haggle
+<<script TypeScript>>
+  const asking = State.variables.gold as number;
+  State.variables.gold = Math.round(asking * 1.5);
+<</script>>
+
+Talked them up to $gold gold.
+
+[[Tip]]
+
+:: Tip
+<<script TwineScript>>
+$gold to $gold + 1;
+<</script>>
+
+And a tip: $gold gold.

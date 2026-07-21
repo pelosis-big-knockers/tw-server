@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": ["index.ts", "console-writer.ts"]
+  "include": ["index.ts", "console-writer.ts", "twee-script.ts"]
 }
