@@ -8,3 +8,8 @@ examples/**/index.html
 # Normally lives in node_modules (already ignored); this covers the fallback
 # location, and the copies a hard kill leaves in the example fixtures.
 .tw-server/
+
+# Claude Code's session state and worktrees. Local-only, and never a
+# submodule: committing a worktree path records a mode-160000 gitlink that
+# no .gitmodules describes, so every clone gets a broken submodule ref.
+.claude/
