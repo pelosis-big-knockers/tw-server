@@ -9,6 +9,7 @@ import path from "path";
 import os from "os";
 import { writeLine, write, setLoadingLine, setCurrentLine } from "./console-writer.ts";
 import { stripScriptTypes } from "./twee-script.ts";
+import { generateSetupTypes, cleanupSetupTypes } from "./setup-types.ts";
 
 const host = "localhost";
 const defaultPort = 8080;
@@ -34,8 +35,18 @@ if (args.length > 0) {
 // .js by the native tsc into this scratch directory, and those outputs are
 // handed to tweego instead.
 const tempDir = mkdtempSync(path.join(os.tmpdir(), "tw-server-"));
-process.on("exit", () => rmSync(tempDir, { recursive: true, force: true }));
+process.on("exit", () => {
+  rmSync(tempDir, { recursive: true, force: true });
+  // The recovered-types declaration has to live inside the project to resolve
+  // (see setup-types.ts), so unlike the scratch dir it isn't cleaned up by
+  // virtue of being in the temp dir.
+  cleanupSetupTypes(".");
+});
+// Both signals, not just SIGINT: the recovered-types file lives in the project
+// and only the `exit` handler above removes it, so a SIGTERM (what a supervisor
+// or `timeout` sends) would otherwise leave it behind in the author's tree.
 process.on("SIGINT", () => process.exit(0));
+process.on("SIGTERM", () => process.exit(0));
 
 const httpServer = createServer((req, res) => {
   let path = req.url ?? "/";
@@ -313,6 +324,30 @@ function compileTypeScript(callback: (errorOutput: string | null) => void) {
   // this without conflict.
   const augmentation = path.join(import.meta.dirname, "types", "sugarcube-augmentation.d.ts");
   args.push(`"${augmentation}"`);
+
+  // On top of that, the members recovered from their own assignments — the same
+  // types the editor extension shows — so the build checks `setup.attack(3)`
+  // properly instead of waving every member through as `any`.
+  //
+  // This is additive on purpose. The two declarations merge without conflict
+  // (the recovered one carries the index signature too), so if recovery is
+  // skipped for any reason the build simply falls back to the permissive
+  // augmentation above: weaker, but exactly what tw-server did before, rather
+  // than a hard failure.
+  const recovered = generateSetupTypes(".", sources);
+  if (recovered.path) {
+    args.push(`"${recovered.path}"`);
+  }
+
+  if (recovered.skipped) {
+    writeLine(
+      recovered.path
+        ? `Note: ${recovered.skipped}`
+        : `Note: setup/State member types not recovered — ${recovered.skipped}.\n` +
+          `      The build still type-checks, but those members are typed 'any'.`,
+      "yellow"
+    );
+  }
 
   // Pass arguments via a response file so large projects don't exceed the
   // command-line length limit and paths with spaces stay intact.

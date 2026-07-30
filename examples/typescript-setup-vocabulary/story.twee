@@ -1,0 +1,14 @@
+:: StoryTitle
+TypeScript Setup Vocabulary
+
+:: StoryData
+{
+  "ifid": "11111111-2222-4333-8444-555555555555",
+  "format": "SugarCube",
+  "format-version": "2.37.3"
+}
+
+:: Start
+Brightest: <<= setup.brightest({ red: 1, green: 9, blue: 4 })>>
+Total: <<= setup.total({ red: 1, green: 9, blue: 4 })>>
+Widest: <<= setup.widest({ circle: 3, square: 7 })>>

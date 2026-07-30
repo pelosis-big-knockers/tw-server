@@ -1,7 +1,7 @@
 {
   "name": "tw-server",
   "version": "1.0.0",
-  "description": "tw-server",
+  "description": "Dev server for Twine/SugarCube stories: builds with tweego, type-checks the story's TypeScript (including code in passages), and live-reloads the browser on change.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -10,16 +10,41 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "twine",
+    "sugarcube",
+    "twee",
+    "tweego",
+    "typescript",
+    "dev-server"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pelosis-big-knockers/tw-server.git"
+  },
+  "homepage": "https://github.com/pelosis-big-knockers/tw-server#readme",
+  "bugs": {
+    "url": "https://github.com/pelosis-big-knockers/tw-server/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "//os": "The bundled tweego is a Windows binary (dist/tweego/tweego.exe) and it is the only one shipped, so the build cannot run anywhere else. Declaring this makes npm refuse to install on other platforms, which is a clear error instead of a confusing one at first build. Drop this once binaries for darwin/linux are bundled.",
+  "os": [
+    "win32"
+  ],
   "scripts": {
     "build": "node scripts/build.mjs",
     "prepare": "node scripts/build.mjs",
     "examples": "node examples/run.mjs"
   },
   "author": "pelosis-big-knockers",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "dependencies": {
     "@types/twine-sugarcube": "^2.37.2",
+    "tw-sugarcube-analyzer": "^0.1.0",
     "typescript": "^7.0.2",
+    "typescript-api": "npm:typescript@^6.0.3",
     "ws": "^8.18.3"
   },
   "devDependencies": {

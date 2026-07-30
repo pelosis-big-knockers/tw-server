@@ -3,3 +3,8 @@ dist
 
 # Build artifacts produced when running the example fixtures
 examples/**/index.html
+
+# Recovered setup/State declarations, written into the project being built.
+# Normally lives in node_modules (already ignored); this covers the fallback
+# location, and the copies a hard kill leaves in the example fixtures.
+.tw-server/

@@ -10,6 +10,18 @@
 // `State.variables.foo`, and settings access type-checking without forcing every
 // property to be declared up front, while every other SugarCube API stays fully
 // typed (so real misuse is still caught).
+//
+// This is the FLOOR, not the whole story. setup-types.ts recovers each member's
+// real type from its assignments and passes a second augmentation alongside this
+// one; the two merge, and the recovered types win where they exist. What's left
+// here is the open index signature, which is what lets a member the analyzer
+// couldn't see stay permissive instead of erroring — and what the build falls
+// back to entirely when recovery can't run.
+//
+// Note that an index signature of `any` and `noImplicitAny` are in tension: a
+// member typed `any` here propagates, and the check then rejects the code that
+// uses it. That is not a reason to loosen the build's `strict` — it is the
+// reason recovery exists.
 import "twine-sugarcube";
 
 declare module "twine-sugarcube" {
